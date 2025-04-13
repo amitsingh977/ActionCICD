@@ -11,7 +11,7 @@ env:
   GCR_REGION: gcr.io
   GITOPS_REPO: git@github.com:amitsingh977/gitops-config.git
   GITOPS_REPO_DIR: apps/java-app
-  DEPLOYMENT_FILE: deployment.yaml
+  DEPLOYMENT_FILE: deployment.yml
 
 jobs:
   build-and-push:
