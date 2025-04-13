@@ -1,0 +1,71 @@
+name: Build and Deploy to GKE via Argo CD
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: inner-root-456714-i7
+  IMAGE_NAME: Action-cicd
+  GCR_REGION: gcr.io
+  GITOPS_REPO: git@github.com:amitsingh977/gitops-config.git
+  GITOPS_REPO_DIR: deploy
+  DEPLOYMENT_FILE: deployment.yaml
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+
+      - name: Build JAR
+        run: |
+          ./gradlew build
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker ${{ env.GCR_REGION }}
+
+      - name: Build & Push Docker image
+        run: |
+          IMAGE_TAG=${{ env.GCR_REGION }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Clone GitOps repo
+        uses: actions/checkout@v3
+        with:
+          repository: your-username/java-gitops-config
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+          path: gitops
+
+      - name: Update deployment manifest
+        run: |
+          cd gitops/${{ env.GITOPS_REPO_DIR }}
+          yq e -i '.spec.template.spec.containers[0].image = "${{ env.IMAGE_TAG }}"' ${{ env.DEPLOYMENT_FILE }}
+
+      - name: Commit and push changes to GitOps repo
+        run: |
+          cd gitops
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update image to ${{ env.IMAGE_TAG }}"
+          git push origin main
