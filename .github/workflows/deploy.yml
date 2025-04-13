@@ -55,6 +55,7 @@ jobs:
           repository: amitsingh977/gitops-config.git
           ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
           path: gitops
+          ref: main
 
       - name: Update deployment manifest
         run: |
