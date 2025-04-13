@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_ID: inner-root-456714-i7
-  IMAGE_NAME: Action-cicd
+  IMAGE_NAME: action-cicd
   GCR_REGION: gcr.io
   GITOPS_REPO: git@github.com:amitsingh977/gitops-config.git
   GITOPS_REPO_DIR: deploy
