@@ -52,7 +52,7 @@ jobs:
       - name: Clone GitOps repo
         uses: actions/checkout@v3
         with:
-          repository: your-username/java-gitops-config
+          repository: amitsingh977/gitops-config.git
           ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
           path: gitops
 
