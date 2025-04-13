@@ -62,17 +62,13 @@ jobs:
           cd gitops/${{ env.GITOPS_REPO_DIR }}
           yq e -i '.spec.template.spec.containers[0].image = "${{ env.IMAGE_TAG }}"' ${{ env.DEPLOYMENT_FILE }}
           
-          
-      - name: Set up SSH for GitOps repo
+
+      - name: Commit and push changes to GitOps repo
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.GITOPS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-
-      - name: Commit and push changes to GitOps repo
-        run: |
           cd gitops
           git config user.name "github-actions"
           git config user.email "actions@github.com"
