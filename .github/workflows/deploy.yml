@@ -71,7 +71,8 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           cd gitops
           git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.email "github-actions@github.com"
+          git remote set-url origin git@github.com:amitsingh977/gitops-config.git
           git add .
-          git commit -m "Update image to ${{ env.IMAGE_TAG }}"
+          git commit -m "Update image to ${{ env.IMAGE_TAG }}" || echo "No changes to commit"
           git push origin main
