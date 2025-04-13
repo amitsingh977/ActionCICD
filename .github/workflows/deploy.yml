@@ -10,7 +10,7 @@ env:
   IMAGE_NAME: action-cicd
   GCR_REGION: gcr.io
   GITOPS_REPO: git@github.com:amitsingh977/gitops-config.git
-  GITOPS_REPO_DIR: deploy
+  GITOPS_REPO_DIR: apps/java-app
   DEPLOYMENT_FILE: deployment.yaml
 
 jobs:
