@@ -49,23 +49,39 @@ jobs:
           docker push $IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Set up SSH for GitOps repo
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GITOPS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
       - name: Clone GitOps repo
+        uses: actions/checkout@v3
+        with:
+          repository: amitsingh977/gitops-config.git
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+          path: gitops
+          ref: main
+
+      - name: Update deployment manifest
         run: |
-          git clone $GITOPS_REPO gitops
+          cd gitops/${{ env.GITOPS_REPO_DIR }}
+          yq e -i '.spec.template.spec.containers[0].image = "${{ env.IMAGE_TAG }}"' ${{ env.DEPLOYMENT_FILE }}
+          
       - name: Update image in GitOps repo
         run: |
-          cd gitops/${GITOPS_REPO_DIR}
-          sed -i "s|image:.*|image: ${GCR_REGION}/${PROJECT_ID}/${IMAGE_NAME}:${{ github.sha }}|" $DEPLOYMENT_FILE
-      
+          cd gitops/deploy
+          sed -i "s|image:.*|image: gcr.io/inner-root-456714-i7/action-cicd:${{ github.sha }}|" deployment.yaml
+
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add $DEPLOYMENT_FILE
-          git commit -m "Update image to ${GCR_REGION}/${PROJECT_ID}/${IMAGE_NAME}:${{ github.sha }}" || echo "No changes to commit"
+          git add deployment.yaml
+          git commit -m "Update image to gcr.io/inner-root-456714-i7/action-cicd:${{ github.sha }}" || echo "No changes to commit"
           git push origin main
+#      - name: Commit and push changes to GitOps repo
+#        run: |
+#          mkdir -p ~/.ssh
+#          echo "${{secrets.GITOPS_DEPLOY_KEY}}" > ~/.ssh/id_rsa
+#          chmod 600 ~/.ssh/id_rsa
+#          ssh-keyscan github.com >> ~/.ssh/known_hosts
+#          cd gitops
+#          git config user.name "amitsingh977"
+#          git config user.email "amitsingh977@github.com"
+#          git remote set-url origin git@github.com:amitsingh977/gitops-config.git
+#          git add .
+#          git commit -m "Update image to ${{ env.IMAGE_TAG }}" || echo "No changes to commit"
+#          git push origin main
