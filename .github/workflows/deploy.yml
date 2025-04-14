@@ -66,7 +66,7 @@ jobs:
       - name: Commit and push changes to GitOps repo
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.GITOPS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          echo ${{secrets.GITOPS_DEPLOY_KEY}} > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           cd gitops
