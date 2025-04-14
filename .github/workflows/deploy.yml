@@ -64,7 +64,7 @@ jobs:
           
       - name: Update image in GitOps repo
         run: |
-          cd gitops/deploy
+          cd gitops
           sed -i "s|image:.*|image: gcr.io/inner-root-456714-i7/action-cicd:${{ github.sha }}|" deployment.yaml
 
           git config user.name "github-actions"
