@@ -64,9 +64,13 @@ jobs:
           sed -i "s|image:.*|image: $IMAGE_TAG|" ${{ env.DEPLOYMENT_FILE }}
 
       - name: Push updated manifest to GitOps repo
+        with:
+          repository: amitsingh977/gitops-config.git
+          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+          path: gitops
+          ref: main
         run: |
           cd gitops/${{ env.GITOPS_REPO_DIR }}
-
           # Configure SSH
           mkdir -p ~/.ssh
           echo "${{ secrets.GITOPS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
