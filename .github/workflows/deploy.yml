@@ -50,39 +50,25 @@ jobs:
           docker push $IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Clone GitOps repo
-        uses: actions/checkout@v3
+      - name: Set up SSH agent for GitOps repo
+        uses: webfactory/ssh-agent@v0.7.0
         with:
-          repository: amitsingh977/gitops-config.git
-          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
-          path: gitops
-          ref: main
+          ssh-private-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+
+      - name: Clone GitOps repo
+        run: git clone ${{ env.GITOPS_REPO }} gitops
 
       - name: Update deployment manifest with new image
         run: |
           cd gitops/${{ env.GITOPS_REPO_DIR }}
-          sed -i "s|image:.*|image: $IMAGE_TAG|" ${{ env.DEPLOYMENT_FILE }}
+          sed -i "s|image:.*|image: ${{ env.IMAGE_TAG }}|" ${{ env.DEPLOYMENT_FILE }}
 
-      - name: Push updated manifest to GitOps repo
-        with:
-          repository: amitsingh977/gitops-config.git
-          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
-          path: gitops
-          ref: main
+      - name: Commit and Push updated manifest to GitOps repo
         run: |
           cd gitops/${{ env.GITOPS_REPO_DIR }}
-          # Configure SSH
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GITOPS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-          # Git config
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          # Push changes via SSH
           git remote set-url origin ${{ env.GITOPS_REPO }}
           git add ${{ env.DEPLOYMENT_FILE }}
-          git commit -m "Update image to $IMAGE_TAG" || echo "No changes to commit"
+          git commit -m "Update image to ${{ env.IMAGE_TAG }}" || echo "No changes to commit"
           git push origin main
