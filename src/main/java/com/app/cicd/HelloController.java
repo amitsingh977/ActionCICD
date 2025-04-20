@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
     @GetMapping("/api")
     public String hello() {
-        return "Hello from Java + GKE + Argo CD!";
+        return "Hello from Java + GKE + Argo CD! +++11";
     }
 }
 
